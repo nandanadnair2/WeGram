@@ -1,0 +1,1485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeGram Management System</title>
+    <style>
+        :root {
+            --primary: #2c7a7b;
+            --primary-dark: #234e52;
+            --secondary: #ed8936;
+            --bg: #f7fafc;
+            --surface: #ffffff;
+            --text: #2d3748;
+            --text-light: #718096;
+            --danger: #e53e3e;
+            --success: #38a169;
+            --warning: #d69e2e;
+            --border: #e2e8f0;
+            --radius: 8px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- Navigation Sidebar --- */
+        aside {
+            width: 260px;
+            background-color: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .brand {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--primary-dark);
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-item {
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-light);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-item:hover {
+            background-color: var(--bg);
+            color: var(--primary);
+        }
+
+        .nav-item.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        /* --- Main Content --- */
+        main {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            color: var(--text);
+        }
+
+        /* --- Sections (Modules) --- */
+        .module-section {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .module-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- UI Components --- */
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-weight: 600;
+            transition: opacity 0.2s;
+            background-color: var(--primary);
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn:hover { opacity: 0.9; }
+        .btn-secondary { background-color: var(--text-light); }
+        .btn-danger { background-color: var(--danger); }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        /* --- Google Map Module Styles --- */
+        .google-map-container {
+            width: 100%;
+            height: 500px;
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            margin-bottom: 1rem;
+            position: relative;
+        }
+        
+        .google-map-iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        .navigation-tools {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            background: var(--bg);
+            padding: 1rem;
+            border-radius: var(--radius);
+        }
+
+        .nav-input-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        /* --- Module 1: Problem List --- */
+        .problem-item {
+            border-left: 4px solid var(--secondary);
+            padding: 1rem;
+            background: #fffaf0;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .tag {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: #eee;
+            color: #555;
+        }
+        .priority-high { background: #fed7d7; color: #c53030; }
+
+        /* --- Module 3: Simulator --- */
+        .slider-group { margin-bottom: 1.5rem; }
+        .slider-group input[type="range"] { width: 100%; margin: 0.5rem 0; cursor: pointer; }
+        .impact-bar {
+            height: 10px;
+            background: var(--bg);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        .impact-fill { height: 100%; background: var(--success); width: 0%; transition: width 0.5s; }
+
+        /* --- Module 6: Chat --- */
+        .chat-window {
+            height: 400px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            background: var(--bg);
+        }
+        .message {
+            margin-bottom: 0.8rem;
+            padding: 0.8rem;
+            border-radius: var(--radius);
+            max-width: 80%;
+        }
+        .msg-bot { background: var(--surface); align-self: flex-start; border: 1px solid var(--border); }
+        .msg-user { background: var(--primary); color: white; margin-left: auto; }
+        .chat-input-area {
+            padding: 1rem;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+        }
+
+        /* --- Module 7: Work Profile --- */
+        .work-score {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            text-align: center;
+        }
+        .cert-badge {
+            border: 2px dashed var(--primary);
+            padding: 1rem;
+            text-align: center;
+            background: #e6fffa;
+            margin-top: 1rem;
+        }
+
+        /* --- Module 8: Dashboard --- */
+        .stat-card {
+            text-align: center;
+            padding: 1rem;
+        }
+        .stat-val { font-size: 2rem; font-weight: bold; color: var(--primary-dark); }
+        .stat-label { font-size: 0.9rem; color: var(--text-light); }
+
+        /* --- Module 4: Transport Table --- */
+        .transport-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .transport-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .transport-table th {
+            text-align: left;
+            padding: 1rem;
+            background: var(--bg);
+            color: var(--text-light);
+            font-weight: 600;
+        }
+        .transport-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .transport-table tr:hover {
+            background-color: #f7fafc;
+        }
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .status-ontime { background-color: #c6f6d5; color: #22543d; }
+        .status-delayed { background-color: #fed7d7; color: #822727; }
+        .icon-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* --- Toast Notification --- */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 4px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1000;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-size: 1rem;
+        }
+        #toast.show {
+            visibility: visible;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+
+        /* --- Responsive --- */
+        @media (max-width: 768px) {
+            body { flex-direction: column; overflow: auto; }
+            aside { width: 100%; flex-direction: row; overflow-x: auto; padding: 0.5rem; border-right: none; border-bottom: 1px solid var(--border); }
+            .brand { display: none; }
+            .nav-item { white-space: nowrap; margin-bottom: 0; margin-right: 0.5rem; }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .card { overflow-x: auto; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar Navigation -->
+<aside>
+    <div class="brand">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+        </svg>
+        WeGram
+    </div>
+    <div class="nav-item active" onclick="showModule('problem-action')" data-i18n="menu_problem">1. Problem Action</div>
+    <div class="nav-item" onclick="showModule('scheme-check')" data-i18n="menu_scheme">2. Scheme Eligibility</div>
+    <div class="nav-item" onclick="showModule('resource-sim')" data-i18n="menu_sim">3. Resource Simulator</div>
+    <!-- Graph Removed -->
+    <div class="nav-item" onclick="showModule('village-map')" data-i18n="menu_map">4. Village Map</div>
+    
+    <div class="nav-item" onclick="showModule('transport-schedule')" data-i18n="menu_transport">5. Transport</div>
+    <div class="nav-item" onclick="showModule('ai-assistant')" data-i18n="menu_ai">6. AI Assistant</div>
+    <div class="nav-item" onclick="showModule('invisible-work')" data-i18n="menu_work">7. Invisible Work</div>
+    <div class="nav-item" onclick="showModule('admin-panel')" data-i18n="menu_admin">8. Admin Dashboard</div>
+</aside>
+
+<!-- Main Content Area -->
+<main>
+    <header>
+        <h2 id="module-title" data-i18n="title_problem">Problem-to-Action Mapping</h2>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <span data-i18n="lbl_language">Language:</span>
+            <select id="langSelect" onchange="changeLanguage()" style="width: auto; margin-bottom: 0;">
+                <option value="en">English</option>
+                <option value="hi">हिंदी (Hindi)</option>
+                <option value="te">తెలుగు (Telugu)</option>
+                <option value="kn">ಕನ್ನಡ (Kannada)</option>
+            </select>
+        </div>
+    </header>
+
+    <!-- Module 1: Problem to Action -->
+    <section id="problem-action" class="module-section active">
+        <div class="grid-2">
+            <div class="card">
+                <h3 data-i18n="card_report">Report an Issue</h3>
+                <p style="color: var(--text-light); margin-bottom: 1rem; font-size: 0.9rem;" data-i18n="sub_report">System will cluster and prioritize automatically.</p>
+                <label data-i18n="lbl_issue_type">Issue Type</label>
+                <select id="issueType">
+                    <option value="Water" data-i18n="opt_water">Water Supply</option>
+                    <option value="Road" data-i18n="opt_road">Road Damage</option>
+                    <option value="Health" data-i18n="opt_health">Health/Sanitation</option>
+                    <option value="Electricity" data-i18n="opt_elec">Electricity</option>
+                </select>
+                <label data-i18n="lbl_desc">Description</label>
+                <textarea id="issueDesc" rows="3" data-i18n-ph="ph_issue_desc" placeholder="Describe the problem..."></textarea>
+                <button class="btn" onclick="submitIssue()" data-i18n="btn_report">Report Issue</button>
+            </div>
+            <div class="card">
+                <h3 data-i18n="card_clusters">Detected Clusters & Priority</h3>
+                <div id="issueList">
+                    <!-- Items injected via JS -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Module 2: Scheme Eligibility -->
+    <section id="scheme-check" class="module-section">
+        <div class="grid-2">
+            <div class="card">
+                <h3 data-i18n="card_eligibility">Check Eligibility</h3>
+                <label data-i18n="lbl_income">Annual Income (₹)</label>
+                <input type="number" id="income" data-i18n-ph="ph_income" placeholder="e.g. 50000">
+                <label data-i18n="lbl_land">Land Ownership (Acres)</label>
+                <input type="number" id="land" data-i18n-ph="ph_land" placeholder="e.g. 2">
+                <label data-i18n="lbl_family">Family Members</label>
+                <input type="number" id="familySize" data-i18n-ph="ph_family" placeholder="e.g. 4">
+                <button class="btn" onclick="checkSchemes()" data-i18n="btn_analyze">Analyze Eligibility</button>
+            </div>
+            <div class="card" id="schemeResult" style="display: none;">
+                <!-- Result injected via JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Module 3: Resource Allocation Simulator -->
+    <section id="resource-sim" class="module-section">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                <h3 data-i18n="card_budget">Budget Allocation</h3>
+                <strong data-i18n="lbl_total_budget">Total Budget: ₹<span id="budgetDisplay">1,00,00,000</span></strong>
+            </div>
+            
+            <div class="grid-3">
+                <div class="slider-group">
+                    <label data-i18n="lbl_road">Road Repair (₹<span id="valRoad">30</span>L)</label>
+                    <input type="range" min="0" max="100" value="30" id="rangeRoad" oninput="updateSim()">
+                    <div class="impact-bar"><div class="impact-fill" id="fillRoad" style="width: 30%"></div></div>
+                    <small data-i18n="sub_accessibility">Long-term Accessibility Impact</small>
+                </div>
+                <div class="slider-group">
+                    <label data-i18n="lbl_healthcare">Healthcare (₹<span id="valHealth">40</span>L)</label>
+                    <input type="range" min="0" max="100" value="40" id="rangeHealth" oninput="updateSim()">
+                    <div class="impact-bar"><div class="impact-fill" id="fillHealth" style="width: 40%; background: var(--secondary);"></div></div>
+                    <small data-i18n="sub_wellbeing">Wellbeing Impact</small>
+                </div>
+                <div class="slider-group">
+                    <label data-i18n="lbl_water">Water Supply (₹<span id="valWater">30</span>L)</label>
+                    <input type="range" min="0" max="100" value="30" id="rangeWater" oninput="updateSim()">
+                    <div class="impact-bar"><div class="impact-fill" id="fillWater" style="width: 30%; background: #4299e1;"></div></div>
+                    <small data-i18n="sub_daily">Daily Life Impact</small>
+                </div>
+            </div>
+            <div style="margin-top: 1rem; padding: 1rem; background: #ebf8ff; border-radius: var(--radius);">
+                <strong data-i18n="lbl_outcome">Predicted 5-Year Outcome:</strong>
+                <span id="simOutcome">Balanced growth projected.</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- NEW MODULE 4: Village Map (Google Maps Integration) -->
+    <section id="village-map" class="module-section">
+        <div class="card">
+            <h3 data-i18n="card_map">Village & Navigation Map</h3>
+            <p style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--text-light);" data-i18n="sub_map">Interactive map of WeGram. Use the tools below to get directions.</p>
+            
+            <!-- Embedded Google Map -->
+            <div class="google-map-container">
+                <!-- Using a generic query for WeGram to simulate location. -->
+                <iframe 
+                    class="google-map-iframe"
+                    src="https://maps.google.com/maps?q=WeGram&t=&z=13&ie=UTF8&iwloc=&output=embed" 
+                    allowfullscreen>
+                </iframe>
+            </div>
+
+            <!-- Navigation Tools -->
+            <div class="navigation-tools">
+                <div class="nav-input-group">
+                    <label data-i18n="lbl_dest">Where to?</label>
+                    <input type="text" id="navDestination" placeholder="Enter destination (e.g. Hospital, Market)..." style="margin-bottom: 0;">
+                </div>
+                <div style="flex-basis: 100%; height: 10px;"></div>
+                <button class="btn" onclick="openGoogleDirections()" style="align-self: flex-end;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+                    </svg>
+                    <span data-i18n="btn_get_dir">Get Directions</span>
+                </button>
+                <button class="btn btn-secondary" onclick="viewOnMap()" style="align-self: flex-end;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+                    </svg>
+                    <span data-i18n="btn_view_map">Open Full Map</span>
+                </button>
+            </div>
+
+            <div class="map-legend" style="margin-top: 1rem; font-size: 0.85rem; display: flex; gap: 15px;">
+                <div class="legend-item"><span style="font-weight:bold; color:var(--text)">ℹ️</span> <span data-i18n="map_info">Map connects to Google Maps service.</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Module 5: Public Transport Schedule -->
+    <section id="transport-schedule" class="module-section">
+        <div class="card">
+            <h3 data-i18n="card_transport">Public Transport Schedule</h3>
+            <p style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--text-light);" data-i18n="sub_transport">Real-time status for Buses and Trains passing through WeGram Village.</p>
+            
+            <div class="transport-controls">
+                <input type="text" id="transportSearch" data-i18n-ph="ph_search_transport" placeholder="Search destination..." style="margin-bottom: 0; flex: 1;" onkeyup="filterTransport()">
+                <select id="transportFilter" onchange="filterTransport()" style="margin-bottom: 0; width: 150px;">
+                    <option value="All" data-i18n="opt_all">All</option>
+                    <option value="Bus" data-i18n="opt_bus">Bus</option>
+                    <option value="Train" data-i18n="opt_train">Train</option>
+                    <option value="Auto" data-i18n="opt_auto">Auto/Van</option>
+                </select>
+            </div>
+
+            <table class="transport-table">
+                <thead>
+                    <tr>
+                        <th data-i18n="tbl_type">Type</th>
+                        <th data-i18n="tbl_route">Route / Destination</th>
+                        <th data-i18n="tbl_time">Time</th>
+                        <th data-i18n="tbl_status">Status</th>
+                        <th data-i18n="tbl_fare">Fare (Approx)</th>
+                    </tr>
+                </thead>
+                <tbody id="transportList">
+                    <!-- JS Injected Rows -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Module 6: AI Assistant -->
+    <section id="ai-assistant" class="module-section">
+        <div class="card chat-window">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message msg-bot" id="initial-bot-msg">
+                    Hello! I am your local language AI assistant. Ask me about government schemes, road status, or water supply.
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" data-i18n-ph="ph_chat" placeholder="Type or ask a question..." style="margin-bottom: 0;" onkeypress="handleChatKey(event)">
+                <button class="btn" onclick="sendChat()" data-i18n="btn_send">Send</button>
+                <button class="btn btn-secondary" onclick="toggleVoice()" title="Simulate Voice Input">🎤</button>
+            </div>
+        </div>
+        <div style="margin-top: 1rem;">
+            <small data-i18n="chat_suggestion">Try asking: <em>"Do I qualify for the rice scheme?", "Where is the health camp?", "Translate to Hindi"</em></small>
+        </div>
+    </section>
+
+    <!-- Module 7: Invisible Work Recognition -->
+    <section id="invisible-work" class="module-section">
+        <div class="grid-2">
+            <div class="card">
+                <h3 data-i18n="card_log_work">Log Unpaid Work</h3>
+                <label data-i18n="lbl_work_type">Work Type</label>
+                <select id="workType">
+                    <option value="Farming Help" data-i18n="opt_farm">Farming Help</option>
+                    <option value="Caregiving" data-i18n="opt_care">Caregiving (Elderly/Children)</option>
+                    <option value="SHG Meeting" data-i18n="opt_shg">SHG Work</option>
+                    <option value="Community Kitchen" data-i18n="opt_kitchen">Community Kitchen</option>
+                </select>
+                <label data-i18n="lbl_hours">Hours Spent</label>
+                <input type="number" id="workHours" data-i18n-ph="ph_hours" placeholder="e.g. 4">
+                <button class="btn" onclick="logWork()" data-i18n="btn_log">Log Work</button>
+            </div>
+            <div class="card" id="workProfile" style="display: none; text-align: center;">
+                <h3 data-i18n="card_impact">Impact Profile</h3>
+                <div class="work-score" id="impactScore">0</div>
+                <div style="color: var(--text-light);" data-i18n="sub_contribution">Community Contribution Score</div>
+                
+                <div class="cert-badge">
+                    <strong data-i18n="lbl_proof">Proof of Work Generated</strong><br>
+                    <span id="certName" style="font-size: 0.9rem;"></span><br>
+                    <span data-i18n="lbl_verified">Verified Hours:</span> <span id="certHours"></span><br>
+                    <small style="color: #888;">ID: <span id="certId"></span></small>
+                </div>
+                <button class="btn btn-secondary" style="margin-top: 10px;" onclick="downloadCert()" data-i18n="btn_download">Download Proof</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Module 8: Admin Dashboard -->
+    <section id="admin-panel" class="module-section">
+        <div class="grid-3">
+            <div class="card stat-card">
+                <div class="stat-val" id="adminIssues">0</div>
+                <div class="stat-label" data-i18n="stat_issues">Reported Issues</div>
+            </div>
+            <div class="card stat-card">
+                <div class="stat-val" id="adminWork">0</div>
+                <div class="stat-label" data-i18n="stat_work">Invisible Work Hours</div>
+            </div>
+            <div class="card stat-card">
+                <div class="stat-val">85%</div>
+                <div class="stat-label" data-i18n="stat_scheme">Scheme Reach</div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3 data-i18n="card_insights">Data-Driven Policy Insights</h3>
+            <p style="margin-bottom: 1rem;" data-i18n="sub_insights">Based on current data patterns:</p>
+            <ul style="padding-left: 20px; line-height: 1.6;">
+                <li><strong data-i18n="insight_gap_title">Resource Gap:</strong> <span data-i18n="insight_gap_desc">Water-related issues are highest in the Northern quadrant. Allocate +15% budget there.</span></li>
+                <li><strong data-i18n="insight_empower_title">Empowerment:</strong> <span data-i18n="insight_empower_desc">Women's invisible work contribution is equivalent to 1200 paid labor days this month.</span></li>
+                <li><strong data-i18n="insight_anomaly_title">Anomaly:</strong> <span data-i18n="insight_anomaly_desc">Duplicate entries detected in Scheme B for families in Ward 4.</span></li>
+            </ul>
+        </div>
+    </section>
+
+</main>
+
+<!-- Toast Notification -->
+<div id="toast">Notification Message</div>
+
+<script>
+    // --- Translation Dictionary ---
+    const translations = {
+        en: {
+            menu_problem: "1. Problem Action",
+            menu_scheme: "2. Scheme Eligibility",
+            menu_sim: "3. Resource Simulator",
+            menu_map: "4. Village Map",
+            menu_transport: "5. Transport",
+            menu_ai: "6. AI Assistant",
+            menu_work: "7. Invisible Work",
+            menu_admin: "8. Admin Dashboard",
+            lbl_language: "Language:",
+            title_problem: "Problem-to-Action Mapping",
+            title_scheme: "Scheme Eligibility & Leak Detection",
+            title_sim: "Resource Allocation Simulator",
+            title_map: "Village Map & Navigation",
+            title_transport: "Public Transport Schedule",
+            title_ai: "Local Language AI Assistant",
+            title_work: "Invisible Work Recognition",
+            title_admin: "Admin & Policy Decision Support",
+            card_report: "Report an Issue",
+            sub_report: "System will cluster and prioritize automatically.",
+            lbl_issue_type: "Issue Type",
+            opt_water: "Water Supply",
+            opt_road: "Road Damage",
+            opt_health: "Health/Sanitation",
+            opt_elec: "Electricity",
+            lbl_desc: "Description",
+            ph_issue_desc: "Describe the problem...",
+            btn_report: "Report Issue",
+            card_clusters: "Detected Clusters & Priority",
+            lbl_similar: "Similar to",
+            lbl_reports: "other reports",
+            lbl_impact: "Impact",
+            card_eligibility: "Check Eligibility",
+            lbl_income: "Annual Income (₹)",
+            ph_income: "e.g. 50000",
+            lbl_land: "Land Ownership (Acres)",
+            ph_land: "e.g. 2",
+            lbl_family: "Family Members",
+            ph_family: "e.g. 4",
+            btn_analyze: "Analyze Eligibility",
+            res_title: "Analysis Result",
+            res_eligible: "Eligible Schemes:",
+            res_none: "No specific schemes matched for current inputs.",
+            res_leak_title: "⚠️ Leak Detection Alert:",
+            res_leak_suspicious: "Suspicious: Similar ID found in neighboring village.",
+            res_clean: "✓ No duplicate entries detected.",
+            card_budget: "Budget Allocation",
+            lbl_total_budget: "Total Budget: ₹",
+            lbl_road: "Road Repair (₹",
+            lbl_healthcare: "Healthcare (₹",
+            lbl_water: "Water Supply (₹",
+            sub_accessibility: "Long-term Accessibility Impact",
+            sub_wellbeing: "Wellbeing Impact",
+            sub_daily: "Daily Life Impact",
+            lbl_outcome: "Predicted 5-Year Outcome:",
+            out_balanced: "Balanced growth projected.",
+            out_road_high: "High connectivity predicted, but healthcare may suffer.",
+            out_health_high: "Excellent health outcomes, infrastructure maintenance may lag.",
+            out_water_high: "Great water access, but road connectivity issues might persist.",
+            card_map: "Village & Navigation Map",
+            sub_map: "Interactive map of WeGram. Use the tools below to get directions.",
+            lbl_dest: "Where to?",
+            btn_get_dir: "Get Directions",
+            btn_view_map: "Open Full Map",
+            map_info: "Map connects to Google Maps service.",
+            card_transport: "Public Transport Schedule",
+            sub_transport: "Real-time status for Buses and Trains passing through WeGram Village.",
+            ph_search_transport: "Search destination...",
+            opt_all: "All",
+            opt_bus: "Bus",
+            opt_train: "Train",
+            opt_auto: "Auto/Van",
+            tbl_type: "Type",
+            tbl_route: "Route / Destination",
+            tbl_time: "Time",
+            tbl_status: "Status",
+            tbl_fare: "Fare (Approx)",
+            status_ontime: "On Time",
+            status_delayed: "Delayed",
+            msg_bot_welcome: "Hello! I am your local language AI assistant. Ask me about government schemes, road status, or water supply.",
+            ph_chat: "Type or ask a question...",
+            btn_send: "Send",
+            chat_suggestion: 'Try asking: <em>"Do I qualify for the rice scheme?", "Where is the health camp?", "Translate to Hindi"</em>',
+            card_log_work: "Log Unpaid Work",
+            lbl_work_type: "Work Type",
+            opt_farm: "Farming Help",
+            opt_care: "Caregiving (Elderly/Children)",
+            opt_shg: "SHG Work",
+            opt_kitchen: "Community Kitchen",
+            lbl_hours: "Hours Spent",
+            ph_hours: "e.g. 4",
+            btn_log: "Log Work",
+            card_impact: "Impact Profile",
+            sub_contribution: "Community Contribution Score",
+            lbl_proof: "Proof of Work Generated",
+            lbl_verified: "Verified Hours:",
+            btn_download: "Download Proof",
+            stat_issues: "Reported Issues",
+            stat_work: "Invisible Work Hours",
+            stat_scheme: "Scheme Reach",
+            card_insights: "Data-Driven Policy Insights",
+            sub_insights: "Based on current data patterns:",
+            insight_gap_title: "Resource Gap:",
+            insight_gap_desc: "Water-related issues are highest in the Northern quadrant. Allocate +15% budget there.",
+            insight_empower_title: "Empowerment:",
+            insight_empower_desc: "Women's invisible work contribution is equivalent to 1200 paid labor days this month.",
+            insight_anomaly_title: "Anomaly:",
+            insight_anomaly_desc: "Duplicate entries detected in Scheme B for families in Ward 4.",
+            toast_logged: "Issue logged. Priority score assigned.",
+            toast_valid: "Enter valid numbers.",
+            toast_desc: "Please describe the issue.",
+            toast_work: "Work logged. Impact score updated.",
+            toast_hours: "Enter valid hours.",
+            toast_listening: "Listening... (Simulated)",
+            toast_download: "Downloading Proof-of-Work PDF...",
+            bot_rice: "The Rice Subsidy (Annapurna) is available for families with income < ₹50,000. You can check eligibility in the Scheme tab.",
+            bot_road: "There are currently 3 reported road issues clustered near Main Street. High priority repair is scheduled.",
+            bot_health: "The nearest health camp is at the Community Center, Ward 2.",
+            bot_trans_hi: "Hindi translation is available.",
+            bot_trans_kn: "Kannada translation is available.",
+            bot_fallback: "I can help with Schemes, Issues, or Health info. Please select the Admin tab for detailed reports."
+        },
+        hi: {
+            menu_problem: "1. समस्या कार्यवाही",
+            menu_scheme: "2. योजना पात्रता",
+            menu_sim: "3. संसाधन सिम्युलेटर",
+            menu_map: "4. ग्राम मानचित्र",
+            menu_transport: "5. परिवहन",
+            menu_ai: "6. AI सहायक",
+            menu_work: "7. अदृश्य कार्य",
+            menu_admin: "8. एडमिन डैशबोर्ड",
+            lbl_language: "भाषा:",
+            title_problem: "समस्या-से-कार्यवाही मानचित्रण",
+            title_scheme: "योजना पात्रता और लीक पहचान",
+            title_sim: "संसाधन आवंटन सिम्युलेटर",
+            title_map: "ग्राम मानचित्र और नेविगेशन",
+            title_transport: "सार्वजनिक परिवहन समय सारिणी",
+            title_ai: "स्थानीय भाषा AI सहायक",
+            title_work: "अदृश्य कार्य पहचान",
+            title_admin: "एडमिन और नीति निर्णय समर्थन",
+            card_report: "समस्या की रिपोर्ट करें",
+            sub_report: "सिस्टम स्वचालित रूप से क्लस्टर और प्राथमिकता देगा।",
+            lbl_issue_type: "समस्या का प्रकार",
+            opt_water: "जल आपूर्ति",
+            opt_road: "सड़क क्षति",
+            opt_health: "स्वास्थ्य/स्वच्छता",
+            opt_elec: "बिजली",
+            lbl_desc: "विवरण",
+            ph_issue_desc: "समस्या का वर्णन करें...",
+            btn_report: "रिपोर्ट दर्ज करें",
+            card_clusters: "पता लगाए गए क्लस्टर और प्राथमिकता",
+            lbl_similar: "के समान",
+            lbl_reports: "अन्य रिपोर्ट",
+            lbl_impact: "प्रभाव",
+            card_eligibility: "पात्रता जांचें",
+            lbl_income: "वार्षिक आय (₹)",
+            ph_income: "उदा. 50000",
+            lbl_land: "भूमि स्वामित्व (एकड़)",
+            ph_land: "उदा. 2",
+            lbl_family: "परिवार के सदस्य",
+            ph_family: "उदा. 4",
+            btn_analyze: "पात्रता का विश्लेषण करें",
+            res_title: "विश्लेषण परिणाम",
+            res_eligible: "पात्र योजनाएं:",
+            res_none: "वर्तमान इनपुट के लिए कोई विशिष्ट योजना मेल नहीं खाती।",
+            res_leak_title: "⚠️ लीक पहचान चेतावनी:",
+            res_leak_suspicious: "संदिग्ध: पड़ोसी गांव में समान आईडी पाया गया।",
+            res_clean: "✓ कोई डुप्लीकेट प्रविष्टि नहीं पाई गई।",
+            card_budget: "बजट आवंटन",
+            lbl_total_budget: "कुल बजट: ₹",
+            lbl_road: "सड़क मरम्मत (₹",
+            lbl_healthcare: "स्वास्थ्य सेवा (₹",
+            lbl_water: "जल आपूर्ति (₹",
+            sub_accessibility: "दीर्घकालिक पहुंच प्रभाव",
+            sub_wellbeing: "कल्याण प्रभाव",
+            sub_daily: "दैनिक जीवन प्रभाव",
+            lbl_outcome: "भविष्यवाणी 5-वर्ष का परिणाम:",
+            out_balanced: "संतुलित विकास की उम्मीद।",
+            out_road_high: "उच्च कनेक्टिविटी की उम्मीद, लेकिन स्वास्थ्य सेवा प्रभावित हो सकती है।",
+            out_health_high: "उत्कृष्ट स्वास्थ्य परिणाम, बुनियादी ढांचे के रखरखाव में देरी हो सकती है।",
+            out_water_high: "पानी की अच्छी पहुंच, लेकिन सड़क कनेक्टिविटी की समस्याएं बनी रह सकती हैं।",
+            card_map: "ग्राम और नेविगेशन मानचित्र",
+            sub_map: "वीग्राम का इंटरैक्टिव मैप। दिशाओं के लिए नीचे दिए गए टूल का उपयोग करें।",
+            lbl_dest: "कहाँ जाना है?",
+            btn_get_dir: "दिशाएं प्राप्त करें",
+            btn_view_map: "पूरा मानचित्र खोलें",
+            map_info: "मानचित्र Google मानचित्र सेवा से जुड़ता है।",
+            card_transport: "सार्वजनिक परिवहन समय सारिणी",
+            sub_transport: "वीग्राम गांव से गुजरने वाली बसों और ट्रेनों की वास्तविक समय स्थिति।",
+            ph_search_transport: "गंतव्य खोजें...",
+            opt_all: "सभी",
+            opt_bus: "बस",
+            opt_train: "ट्रेन",
+            opt_auto: "ऑटो/वैन",
+            tbl_type: "प्रकार",
+            tbl_route: "रूट / गंतव्य",
+            tbl_time: "समय",
+            tbl_status: "स्थिति",
+            tbl_fare: "किराया (लगभग)",
+            status_ontime: "समय पर",
+            status_delayed: "देरी से",
+            msg_bot_welcome: "नमस्ते! मैं आपका स्थानीय भाषा AI सहायक हूं। सरकारी योजनाओं, सड़क की स्थिति, या पानी की आपूर्ति के बारे में पूछें।",
+            ph_chat: "प्रश्न टाइप करें...",
+            btn_send: "भेजें",
+            chat_suggestion: 'पूछने का प्रयास करें: <em>"क्या मुझे चावल योजना के लिए पात्रता है?", "हेल्थ कैंप कहां है?"</em>',
+            card_log_work: "अवैतनिक कार्य लॉग करें",
+            lbl_work_type: "कार्य का प्रकार",
+            opt_farm: "खेती में मदद",
+            opt_care: "देखभाल (बुजुर्ग/बच्चे)",
+            opt_shg: "SHG कार्य",
+            opt_kitchen: "सामुदायिक रसोई",
+            lbl_hours: "घंटे व्यतीत",
+            ph_hours: "उदा. 4",
+            btn_log: "कार्य लॉग करें",
+            card_impact: "प्रभाव प्रोफाइल",
+            sub_contribution: "सामुदायिक योगदान स्कोर",
+            lbl_proof: "कार्य का प्रमाण जनित",
+            lbl_verified: "सत्यापित घंटे:",
+            btn_download: "प्रमाण डाउनलोड करें",
+            stat_issues: "रिपोर्ट की गई समस्याएं",
+            stat_work: "अदृश्य कार्य घंटे",
+            stat_scheme: "योजना पहुंच",
+            card_insights: "डेटा-संचालित नीति अंतर्दृष्टि",
+            sub_insights: "वर्तमान डेटा पैटर्न के आधार पर:",
+            insight_gap_title: "संसाधन अंतर:",
+            insight_gap_desc: "उत्तरी क्षेत्र में पानी संबंधी समस्याएं सबसे अधिक हैं। वहां +15% बजट आवंटित करें।",
+            insight_empower_title: "सशक्तिकरण:",
+            insight_empower_desc: "महिलाओं का अदृश्य कार्य योगदान इस महीने 1200 भुगतानित श्रम दिवसों के बराबर है।",
+            insight_anomaly_title: "विसंगति:",
+            insight_anomaly_desc: "वार्ड 4 के परिवारों के लिए योजना बी में डुप्लीकेट प्रविष्टियां पाई गईं।",
+            toast_logged: "समस्या लॉग हो गई। प्राथमिकता स्कोर सौंपा गया।",
+            toast_valid: "मान्य संख्या दर्ज करें।",
+            toast_desc: "कृपया समस्या का वर्णन करें।",
+            toast_work: "कार्य लॉग हो गया। प्रभाव स्कोर अपडेट किया गया।",
+            toast_hours: "मान्य घंटे दर्ज करें।",
+            toast_listening: "सुन रहा हूं... (सिम्युलेटेड)",
+            toast_download: "प्रूफ-ऑफ-वर्क पीडीएफ डाउनलोड हो रहा है...",
+            bot_rice: "चावल सब्सिडी (अन्नपूर्णा) ₹50,000 से कम आय वाले परिवारों के लिए उपलब्ध है। आप योजना टैब में पात्रता जांच सकते हैं।",
+            bot_road: "वर्तमान में मेन स्ट्रीट के पास 3 सड़क संबंधित समस्याएं रिपोर्ट की गई हैं। उच्च प्राथमिकता मरम्मत निर्धारित है।",
+            bot_health: "निकटतम हेल्थ कैंप कम्युनिटी सेंटर, वार्ड 2 में है।",
+            bot_trans_hi: "हिंदी अनुवाद सुविधा उपलब्ध है।",
+            bot_trans_kn: "ಕನ್ನಡ ಅನುವಾದ ಲಭ್ಯವಿದೆ.",
+            bot_fallback: "मैं योजनाओं, समस्याओं या स्वास्थ्य जानकारी में मदद कर सकता हूं। विस्तृत रिपोर्ट के लिए कृपया एडमिन टैब चुनें।"
+        },
+        te: {
+            menu_problem: "1. సమస్య పరిష్కారం",
+            menu_scheme: "2. పథకం అర్హత",
+            menu_sim: "3. వనరుల సిమ్యులేటర్",
+            menu_map: "4. గ్రామ మ్యాప్",
+            menu_transport: "5. రవాణా",
+            menu_ai: "6. AI అసిస్టెంట్",
+            menu_work: "7. అదృశ్య కార్యం",
+            menu_admin: "8. అడ్మిన్ డాష్‌బోర్డ్",
+            lbl_language: "భాష:",
+            title_problem: "సమస్య-నుండి-చర్య మ్యాపింగ్",
+            title_scheme: "పథకం అర్హత మరియు లీక్ గుర్తింపు",
+            title_sim: "వనరుల కేటాయింపు సిమ్యులేటర్",
+            title_map: "గ్రామ మ్యాప్ మరియు నావిగేషన్",
+            title_transport: "పబ్లిక్ ట్రాన్స్పోర్ట్ షెడ్యూల్",
+            title_ai: "స్థానిక భాష AI అసిస్టెంట్",
+            title_work: "అదృశ్య కార్యం గుర్తింపు",
+            title_admin: "అడ్మిన్ & పాలసీ నిర్ణయ మద్దతు",
+            card_report: "సమస్యను నివేదించండి",
+            sub_report: "సిస్టమ్ స్వయంచాలకంగా క్లస్టర్ మరియు ప్రాధాన్యత ఇస్తుంది.",
+            lbl_issue_type: "సమస్య రకం",
+            opt_water: "నీటి సరఫరా",
+            opt_road: "రోడ్డు దెబ్బ",
+            opt_health: "ఆరోగ్యం/పరిశుభ్రత",
+            opt_elec: "విద్యుత్",
+            lbl_desc: "వివరణ",
+            ph_issue_desc: "సమస్య గురించి వివరించండి...",
+            btn_report: "నివేదించు",
+            card_clusters: "గుర్తించిన క్లస్టర్లు & ప్రాధాన్యత",
+            lbl_similar: "వీటికి సమానంగా",
+            lbl_reports: "ఇతర నివేదికలు",
+            lbl_impact: "ప్రభావం",
+            card_eligibility: "అర్హత పరిశీలించండి",
+            lbl_income: "వార్షిక ఆదాయం (₹)",
+            ph_income: "ఉదా. 50000",
+            lbl_land: "భూమి యాజమాన్యం (ఎకరాలు)",
+            ph_land: "ఉదా. 2",
+            lbl_family: "కుటుంబ సభ్యులు",
+            ph_family: "ఉదా. 4",
+            btn_analyze: "అర్హతను విశ్లేషించండి",
+            res_title: "విశ్లేషణ ఫలితం",
+            res_eligible: "అర్హత కలిగిన పథకాలు:",
+            res_none: "ప్రస్తుత ఇన్‌పుట్‌లకు నిర్దిష్ట పథకాలు లేవు.",
+            res_leak_title: "⚠️ లీక్ గుర్తింపు హెచ్చరిక:",
+            res_leak_suspicious: "అనుమానాస్పదం: పొరుగు గ్రామంలో ఇలాంటి ID కనుగొనబడింది.",
+            res_clean: "✓ నకిలీ ఎంట్రీలు ఏవీ కనుగొనబడలేదు.",
+            card_budget: "బడ్జెట్ కేటాయింపు",
+            lbl_total_budget: "మొత్తం బడ్జెట్: ₹",
+            lbl_road: "రోడ్డు మరమ్మత్తు (₹",
+            lbl_healthcare: "ఆరోగ్య సంరక్షణ (₹",
+            lbl_water: "నీటి సరఫరా (₹",
+            sub_accessibility: "దీర్ఘకాలిక ప్రాప్యత ప్రభావం",
+            sub_wellbeing: "శ్రేయస్సు ప్రభావం",
+            sub_daily: "దైనిక జీవిత ప్రభావం",
+            lbl_outcome: "అంచనా 5-సంవత్సరాల ఫలితం:",
+            out_balanced: "సమతుల్యమైన అభివృద్ధి అంచనా.",
+            out_road_high: "అధిక కనెక్టివిటీ అంచనా, కానీ ఆరోగ్య సంరక్షణ బాధపడవచ్చు.",
+            out_health_high: "అద్భుతమైన ఆరోగ్య ఫలితాలు, మౌలిక సదుపాయాల నిర్వహణ ఆలస్యం కావచ్చు.",
+            out_water_high: "గొప్ప నీటి ప్రాప్యత, కానీ రోడ్డు కనెక్టివిటీ సమస్యలు ఉండవచ్చు.",
+            card_map: "గ్రామం మరియు నావిగేషన్ మ్యాప్",
+            sub_map: "వీగ్రామ్ ఇంటరాక్టివ్ మ్యాప్. దిశల కోసం కింద ఉన్న టూల్స్ ఉపయోగించండి.",
+            lbl_dest: "ఎక్కడికి?",
+            btn_get_dir: "దిశలు పొందండి",
+            btn_view_map: "పూర్తి మ్యాప్ తెరవండి",
+            map_info: "మ్యాప్ Google మ్యాప్స్ సేవకు కనెక్ట్ అవుతుంది.",
+            card_transport: "పబ్లిక్ ట్రాన్స్పోర్ట్ షెడ్యూల్",
+            sub_transport: "వీగ్రామ్ గ్రామం గుండా వెళ్లే బస్సులు మరియు రైళ్ల రియల్-టైమ్ స్థితి.",
+            ph_search_transport: "గమ్యం శోధించండి...",
+            opt_all: "అన్ని",
+            opt_bus: "బస్సు",
+            opt_train: "రైలు",
+            opt_auto: "ఆటో/వ్యాన్",
+            tbl_type: "రకం",
+            tbl_route: "మార్గం / గమ్యం",
+            tbl_time: "సమయం",
+            tbl_status: "స్థితి",
+            tbl_fare: "రుసుము (సుమారు)",
+            status_ontime: "సమయానికి",
+            status_delayed: "ఆలస్యంగా",
+            msg_bot_welcome: "హలో! నేను మీ స్థానిక భాష AI అసిస్టెంట్. ప్రభుత్వ పథకాలు, రోడ్డు స్థితి లేదా నీటి సరఫరా గురించి అడగండి.",
+            ph_chat: "ప్రశ్న టైప్ చేయండి...",
+            btn_send: "పంపండి",
+            chat_suggestion: 'ప్రయత్నించండి: <em>"నాకు బియ్యు పథకం అర్హత ఉందా?", "ఆరోగ్య శిబిరం ఎక్కడ ఉంది?"</em>',
+            card_log_work: "నిరువేతన కార్యాన్ని లాగ్ చేయండి",
+            lbl_work_type: "పని రకం",
+            opt_farm: "వ్యవసాయ సహాయం",
+            opt_care: "పరిచారకులు (వృద్ధులు/పిల్లలు)",
+            opt_shg: "SHG పని",
+            opt_kitchen: "సంఘ కిచెన్",
+            lbl_hours: "గడిచిన గంటలు",
+            ph_hours: "ఉదా. 4",
+            btn_log: "పని లాగ్ చేయండి",
+            card_impact: "ప్రభావ ప్రొఫైల్",
+            sub_contribution: "సంఘ సహకార స్కోరు",
+            lbl_proof: "పని రుజువు జనించబడింది",
+            lbl_verified: "ధృవీకరించిన గంటలు:",
+            btn_download: "రుజువు డౌన్‌లోడ్ చేయండి",
+            stat_issues: "నివేదించిన సమస్యలు",
+            stat_work: "అదృశ్య కార్య గంటలు",
+            stat_scheme: "పథకం చేరుకుంది",
+            card_insights: "డేటా-ఆధారిత పాలసీ అంతర్దృష్టులు",
+            sub_insights: "ప్రస్తుత డేటా మాదిరిలో:",
+            insight_gap_title: "వనరుల లోపం:",
+            insight_gap_desc: "ఉత్తర విభాగంలో నీటి సమస్యలు అధికంగా ఉన్నాయి. అక్కడ +15% బజెట్ కేటాయించండి.",
+            insight_empower_title: "శక్తివంతం:",
+            insight_empower_desc: "ఈ నెల మహిళల అదృశ్య కార్య సహకారం 1200 చెల్లింపు కార్మిక రోజులకు సమానం.",
+            insight_anomaly_title: "అసాధారణత:",
+            insight_anomaly_desc: "వార్డు 4 లోని కుటుంబాలకు పథకం బిలో నకిలీ ఎంట్రీలు గుర్తించబడ్డాయి.",
+            toast_logged: "సమస్య లాగ్ చేయబడింది. ప్రాధాన్యత స్కోర్ ఇవ్వబడింది.",
+            toast_valid: "చెల్లుబాటు అయ్యే సంఖ్యలను నమోదు చేయండి.",
+            toast_desc: "దయచేసి సమస్యను వివరించండి.",
+            toast_work: "పని లాగ్ చేయబడింది. ప్రభావ స్కోర్ అప్‌డేట్ చేయబడింది.",
+            toast_hours: "చెల్లుబాటు అయ్యే గంటలను నమోదు చేయండి.",
+            toast_listening: "వింటోంది... (సిమ్యులేటెడ్)",
+            toast_download: "ప్రూఫ్-ఆఫ్-వర్క్ PDF డౌన్‌లోడ్ అవుతోంది...",
+            bot_rice: "బియ్యు సబ్సిడీ (అన్నపూర్ణ) ₹50,000 కంటే తక్కువ ఆదాయం ఉన్న కుటుంబాలకు అందుబాటులో ఉంది. మీరు పథకం టాబ్‌లో అర్హతను తనిఖీ చేయవచ్చు.",
+            bot_road: "ప్రస్తుతం ప్రధాన వీధి దగ్గర 3 రోడ్డు సమస్యలు నివేదించబడ్డాయి. అధిక ప్రాధాన్యత మరమ్మతు షెడ్యూల్ చేయబడింది.",
+            bot_health: "సమీప హెల్త్ క్యాంప్ కమ్యూనిటీ సెంటర్, వార్డు 2 లో ఉంది.",
+            bot_trans_hi: "హిందీ అనువాదం అందుబాటులో ఉంది.",
+            bot_trans_kn: "ಕನ್ನಡ ಅನುವಾದ ಲಭ್ಯವಿದೆ.",
+            bot_fallback: "నేను పథకాలు, సమస్యలు లేదా ఆరోగ్య సమాచారంలో సహాయం చేయగలను. వివరణాత్మక నివేదికల కోసం దయచేసి అడ్మిన్ టాబ్‌ను ఎంచుకోండి."
+        },
+        kn: {
+            menu_problem: "1. ಸಮಸ್ಯೆ ಕ್ರಮ",
+            menu_scheme: "2. ಯೋಜನೆ ಅರ್ಹತೆ",
+            menu_sim: "3. ಸಂಪನ್ಮೂಲ ಸಿಮ್ಯುಲೇಟರ್",
+            menu_map: "4. ಗ್ರಾಮ ನಕ್ಷೆ",
+            menu_transport: "5. ಸಾರಿಗೆ",
+            menu_ai: "6. AI ಸಹಾಯಕ",
+            menu_work: "7. ಅದೃಶ್ಯ ಕೆಲಸ",
+            menu_admin: "8. ನಿರ್ವಾಹಕ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+            lbl_language: "ಭಾಷೆ:",
+            title_problem: "ಸಮಸ್ಯೆ-ಇಂದ-ಕ್ರಮದ ಮ್ಯಾಪಿಂಗ್",
+            title_scheme: "ಯೋಜನೆ ಅರ್ಹತೆ ಮತ್ತು ಸೋರಿಕೆ ಪತ್ತೆ",
+            title_sim: "ಸಂಪನ್ಮೂಲ ಹಂಚಿಕೆ ಸಿಮ್ಯುಲೇಟರ್",
+            title_map: "ಗ್ರಾಮ ನಕ್ಷೆ ಮತ್ತು ನ್ಯಾವಿಗೇಶನ್",
+            title_transport: "ಸಾರ್ವಜನಿಕ ಸಾರಿಗೆ ವೇಳಾಪಟ್ಟಿ",
+            title_ai: "ಸ್ಥಳೀಯ ಭಾಷೆಯ AI ಸಹಾಯಕ",
+            title_work: "ಅದೃಶ್ಯ ಕೆಲಸ ಗುರುತಿಸುವಿಕೆ",
+            title_admin: "ನಿರ್ವಾಹಕ ಮತ್ತು ನೀತಿ ನಿರ್ಧಾರ ಬೆಂಬಲ",
+            card_report: "ಸಮಸ್ಯೆಯನ್ನು ವರದಿ ಮಾಡಿ",
+            sub_report: "ವ್ಯವಸ್ಥೆಯು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಕ್ಲಸ್ಟರ್ ಮಾಡುತ್ತದೆ ಮತ್ತು ಆದ್ಯತೆ ನೀಡುತ್ತದೆ.",
+            lbl_issue_type: "ಸಮಸ್ಯೆಯ ಪ್ರಕಾರ",
+            opt_water: "ನೀರಿನ ಪೂರೈಕೆ",
+            opt_road: "ರಸ್ತೆ ಹಾನಿ",
+            opt_health: "ಆರೋಗ್ಯ/ನೈರ್ಮಲ್ಯ",
+            opt_elec: "ವಿದ್ಯುತ್",
+            lbl_desc: "ವಿವರಣೆ",
+            ph_issue_desc: "ಸಮಸ್ಯೆಯನ್ನು ವಿವರಿಸಿ...",
+            btn_report: "ಸಮಸ್ಯೆ ವರದಿ ಮಾಡಿ",
+            card_clusters: "ಪತ್ತೆಹಚ್ಚಿದ ಕ್ಲಸ್ಟರ್‌ಗಳು ಮತ್ತು ಆದ್ಯತೆ",
+            lbl_similar: "ಇವುಗಳಿಗೆ ಹೋಲುವ",
+            lbl_reports: "ಇತರೆ ವರದಿಗಳು",
+            lbl_impact: "ಪರಿಣಾಮ",
+            card_eligibility: "ಅರ್ಹತೆ ಪರಿಶೀಲಿಸಿ",
+            lbl_income: "ವಾರ್ಷಿಕ ಆದಾಯ (₹)",
+            ph_income: "ಉದಾ. 50000",
+            lbl_land: "ಭೂಮಿ ಮಾಲಿಕತ್ವ (ಎಕರೆ)",
+            ph_land: "ಉದಾ. 2",
+            lbl_family: "ಕುಟುಂಬದ ಸದಸ್ಯರು",
+            ph_family: "ಉದಾ. 4",
+            btn_analyze: "ಅರ್ಹತೆಯನ್ನು ವಿಶ್ಲೇಷಿಸಿ",
+            res_title: "ವಿಶ್ಲೇಷಣೆ ಫಲಿತಾಂಶ",
+            res_eligible: "ಅರ್ಹ ಯೋಜನೆಗಳು:",
+            res_none: "ಪ್ರಸ್ತುತ ಇನ್‌ಪುಟ್‌ಗಳಿಗೆ ಯಾವುದೇ ನಿರ್ದಿಷ್ಟ ಯೋಜನೆಗಳು ಹೊಂದಿಕೆಯಾಗುವುದಿಲ್ಲ.",
+            res_leak_title: "⚠️ ಸೋರಿಕೆ ಪತ್ತೆ ಎಚ್ಚರಿಕೆ:",
+            res_leak_suspicious: "ಅನುಮಾನಾಸ್ಪದ: ಹತ್ತಿರದ ಗ್ರಾಮದಲ್ಲಿ ಇದೇ ರೀತಿಯ ID ಪತ್ತೆಯಾಗಿದೆ.",
+            res_clean: "✓ ಯಾವುದೇ ನಕಲಿ ದಾಖಲೆಗಳು ಪತ್ತೆಯಾಗಿಲ್ಲ.",
+            card_budget: "ಬಜೆಟ್ ಹಂಚಿಕೆ",
+            lbl_total_budget: "ಒಟ್ಟು ಬಜೆಟ್: ₹",
+            lbl_road: "ರಸ್ತೆ ದುರಸ್ತಿ (₹",
+            lbl_healthcare: "ಆರೋಗ್ಯ ಸೇವೆ (₹",
+            lbl_water: "ನೀರಿನ ಪೂರೈಕೆ (₹",
+            sub_accessibility: "ದೀರ್ಘಕಾಲಿಕ ಪ್ರವೇಶದ ಪರಿಣಾಮ",
+            sub_wellbeing: "ಕ್ಷೇಮದ ಪರಿಣಾಮ",
+            sub_daily: "ದೈನಂದಿನ ಜೀವನದ ಪರಿಣಾಮ",
+            lbl_outcome: "ಮುನ್ನಂದಾಜು 5-ವರ್ಷದ ಫಲಿತಾಂಶ:",
+            out_balanced: "ಸಮತೋಲಿತ ಬೆಳವಣಿಗೆಯ ನಿರೀಕ್ಷೆ.",
+            out_road_high: "ಹೆಚ್ಚಿನ ಸಂಪರ್ಕದ ನಿರೀಕ್ಷೆ, ಆದರೆ ಆರೋಗ್ಯ ಸೇವೆ ಬಾಧಿತವಾಗಬಹುದು.",
+            out_health_high: "ಉತ್ತಮ ಆರೋಗ್ಯ ಫಲಿತಾಂಶಗಳು, ಮೂಲಸೌಕರ್ಯ ನಿರ್ವಹಣೆಯಲ್ಲಿ ವ್ಯತ್ಯಾಸವಾಗಬಹುದು.",
+            out_water_high: "ಉತ್ತಮ ನೀರಿನ ಪ್ರವೇಶ, ಆದರೆ ರಸ್ತೆ ಸಂಪರ್ಕದ ಸಮಸ್ಯೆಗಳು ಉಳಿದಿರಬಹುದು.",
+            card_map: "ಗ್ರಾಮ ಮತ್ತು ನ್ಯಾವಿಗೇಶನ್ ನಕ್ಷೆ",
+            sub_map: "WeGram ನ ಸಂವಾದಾತ್ಮಕ ನಕ್ಷೆ. ದಿಕ್ಕುಗಳಿಗಾಗಿ ಕೆಳಗಿನ ಸಾಧನಗಳನ್ನು ಬಳಸಿ.",
+            lbl_dest: "ಎಲ್ಲಿಗೆ?",
+            btn_get_dir: "ದಿಕ್ಕುಗಳು ಪಡೆಯಿರಿ",
+            btn_view_map: "ಪೂರ್ಣ ನಕ್ಷೆಯನ್ನು ತೆರೆಯಿರಿ",
+            map_info: "ನಕ್ಷೆಯು Google Maps ಸೇವೆಯೊಂದಿಗೆ ಸಂಪರ್ಕ ಹೊಂದಿದೆ.",
+            card_transport: "ಸಾರ್ವಜನಿಕ ಸಾರಿಗೆ ವೇಳಾಪಟ್ಟಿ",
+            sub_transport: "WeGram ಗ್ರಾಮದ ಮೂಲಕ ಹಾದುಹೋಗುವ ಬಸ್‌ಗಳು ಮತ್ತು ರೈಲುಗಳ ನೈಜ-ಸಮಯದ ಸ್ಥಿತಿ.",
+            ph_search_transport: "ಗಮ್ಯಸ್ಥಾನ ಹುಡುಕಿ...",
+            opt_all: "ಎಲ್ಲಾ",
+            opt_bus: "ಬಸ್",
+            opt_train: "ರೈಲು",
+            opt_auto: "ಆಟೋ/ವ್ಯಾನ್",
+            tbl_type: "ಪ್ರಕಾರ",
+            tbl_route: "ಮಾರ್ಗ / ಗಮ್ಯಸ್ಥಾನ",
+            tbl_time: "ಸಮಯ",
+            tbl_status: "ಸ್ಥಿತಿ",
+            tbl_fare: "ದರ (ಸುಮಾರು)",
+            status_ontime: "ಸಮಯಕ್ಕೆ",
+            status_delayed: "ವಿಳಂಬವಾಗಿದೆ",
+            msg_bot_welcome: "ನಮಸ್ಕಾರ! ನಾನು ನಿಮ್ಮ ಸ್ಥಳೀಯ ಭಾಷೆಯ AI ಸಹಾಯಕ. ಸರ್ಕಾರಿ ಯೋಜನೆಗಳು, ರಸ್ತೆಯ ಸ್ಥಿತಿ, ಅಥವಾ ನೀರಿನ ಪೂರೈಕೆಯ ಬಗ್ಗೆ ಕೇಳಿ.",
+            ph_chat: "ಪ್ರಶ್ನೆ ಟೈಪ್ ಮಾಡಿ...",
+            btn_send: "ಕಳುಹಿಸಿ",
+            chat_suggestion: 'ಪ್ರಯತ್ನಿಸಿ: <em>"ನನಗೆ ಅಕ್ಕಿ ಯೋಜನೆಯ ಅರ್ಹತೆಯಿದೆಯೇ?", "ಆರೋಗ್ಯ ಶಿಬಿರ ಎಲ್ಲಿದೆ?"</em>',
+            card_log_work: "ಪಾವತಿಸದ ಕೆಲಸವನ್ನು ದಾಖಲಿಸಿ",
+            lbl_work_type: "ಕೆಲಸದ ಪ್ರಕಾರ",
+            opt_farm: "ಕೃಷಿ ಸಹಾಯ",
+            opt_care: "ಪಾಲನೆ (ವೃದ್ಧರು/ಮಕ್ಕಳು)",
+            opt_shg: "SHG ಕೆಲಸ",
+            opt_kitchen: "ಸಮುದಾಯ ಅಡುಗೆಮನೆ",
+            lbl_hours: "ಖರ್ಚು ಮಾಡಿದ ಗಂಟೆಗಳು",
+            ph_hours: "ಉದಾ. 4",
+            btn_log: "ಕೆಲಸ ದಾಖಲಿಸಿ",
+            card_impact: "ಪರಿಣಾಮ ಪ್ರೊಫೈಲ್",
+            sub_contribution: "ಸಮುದಾಯ ಕೊಡುಗೆ ಸ್ಕೋರ್",
+            lbl_proof: "ಕೆಲಸದ ಪುರಾವೆ ಉತ್ಪತ್ತಿಯಾಗಿದೆ",
+            lbl_verified: "ಪರಿಶೀಲಿಸಿದ ಗಂಟೆಗಳು:",
+            btn_download: "ಪುರಾವೆ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
+            stat_issues: "ವರದಿ ಮಾಡಿದ ಸಮಸ್ಯೆಗಳು",
+            stat_work: "ಅದೃಶ್ಯ ಕೆಲಸದ ಗಂಟೆಗಳು",
+            stat_scheme: "ಯೋಜನೆ ತಲುಪುವಿಕೆ",
+            card_insights: "ಡೇಟಾ-ಚಾಲಿತ ನೀತಿ ಒಳನೋಟಗಳು",
+            sub_insights: "ಪ್ರಸ್ತುತ ಡೇಟಾ ಮಾದರಿಗಳ ಆಧಾರದ ಮೇಲೆ:",
+            insight_gap_title: "ಸಂಪನ್ಮೂಲ ಅಂತರ:",
+            insight_gap_desc: "ಉತ್ತರ ಭಾಗದಲ್ಲಿ ನೀರಿನ ಸಂಬಂಧಿತ ಸಮಸ್ಯೆಗಳು ಹೆಚ್ಚಾಗಿವೆ. ಅಲ್ಲಿ +15% ಬಜೆಟ್ ಹಂಚಿಸಿ.",
+            insight_empower_title: "ಸಬಲೀಕರಣ:",
+            insight_empower_desc: "ಈ ತಿಂಗಳು ಮಹಿಳೆಯರ ಅದೃಶ್ಯ ಕೆಲಸದ ಕೊಡುಗೆಯು 1200 ಪಾವತಿಸಿದ ಕಾರ್ಮಿಕ ದಿನಗಳಿಗೆ ಸಮಾನವಾಗಿದೆ.",
+            insight_anomaly_title: "ವಿಪರ್ಯಾಸ:",
+            insight_anomaly_desc: "ವಾರ್ಡ್ 4 ರ ಕುಟುಂಬಗಳಿಗೆ ಯೋಜನೆ B ಯಲ್ಲಿ ನಕಲಿ ದಾಖಲೆಗಳು ಪತ್ತೆಯಾಗಿವೆ.",
+            toast_logged: "ಸಮಸ್ಯೆ ದಾಖಲಾಗಿದೆ. ಆದ್ಯತೆಯ ಸ್ಕೋರ್ ನೀಡಲಾಗಿದೆ.",
+            toast_valid: "ಮಾನ್ಯವಾದ ಸಂಖ್ಯೆಗಳನ್ನು ನಮೂದಿಸಿ.",
+            toast_desc: "ದಯವಿಟ್ಟು ಸಮಸ್ಯೆಯನ್ನು ವಿವರಿಸಿ.",
+            toast_work: "ಕೆಲಸ ದಾಖಲಾಗಿದೆ. ಪರಿಣಾಮದ ಸ್ಕೋರ್ ನವೀಕರಿಸಲಾಗಿದೆ.",
+            toast_hours: "ಮಾನ್ಯವಾದ ಗಂಟೆಗಳನ್ನು ನಮೂದಿಸಿ.",
+            toast_listening: "ಕೇಳುತ್ತಿದೆ... (ಸಿಮ್ಯುಲೇಟೆಡ್)",
+            toast_download: "ಕೆಲಸದ ಪುರಾವೆ PDF ಡೌನ್‌ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
+            bot_rice: "ಅಕ್ಕಿ ಸಬ್ಸಿಡಿ (ಅನ್ನಪೂರ್ಣ) ₹50,000 ಕ್ಕಿಂತ ಕಡಿಮೆ ಆದಾಯವಿರುವ ಕುಟುಂಬಗಳಿಗೆ ಲಭ್ಯವಿದೆ. ನೀವು ಯೋಜನೆ ಟ್ಯಾಬ್‌ನಲ್ಲಿ ಅರ್ಹತೆಯನ್ನು ಪರಿಶೀಲಿಸಬಹುದು.",
+            bot_road: "ಪ್ರಸ್ತುತ ಮುಖ್ಯ ಬೀದಿಯ ಹತ್ತಿರ 3 ರಸ್ತೆ ಸಂಬಂಧಿತ ಸಮಸ್ಯೆಗಳು ವರದಿಯಾಗಿವೆ. ಹೆಚ್ಚಿನ ಆದ್ಯತೆಯ ದುರಸ್ತಿ ನಿಗದಿಪಡಿಸಲಾಗಿದೆ.",
+            bot_health: "ಹತ್ತಿರದ ಆರೋಗ್ಯ ಶಿಬಿರವು ಕಮ್ಯುನಿಟಿ ಸೆಂಟರ್, ವಾರ್ಡ್ 2 ರಲ್ಲಿದೆ.",
+            bot_trans_hi: "हिंदी अनुवाद उपलब्ध है.",
+            bot_trans_kn: "ಕನ್ನಡ ಅನುವಾದ ಲಭ್ಯವಿದೆ.",
+            bot_fallback: "ನಾನು ಯೋಜನೆಗಳು, ಸಮಸ್ಯೆಗಳು ಅಥವಾ ಆರೋಗ್ಯ ಮಾಹಿತಿಯಲ್ಲಿ ಸಹಾಯ ಮಾಡಬಹುದು. ವಿವರವಾದ ವರದಿಗಾಗಿ ದಯವಿಟ್ಟು ನಿರ್ವಾಹಕ ಟ್ಯಾಬ್ ಅನ್ನು ಆಯ್ಕೆಮಾಡಿ."
+        }
+    };
+
+    // --- Global State ---
+    let currentLang = 'en';
+    const state = {
+        issues: [
+            { type: 'Road', desc: 'Main street pothole', score: 8.5, count: 3 }
+        ],
+        workHours: 0,
+        impactScore: 0,
+        budget: { road: 30, health: 40, water: 30 },
+        transport: [
+            { id: 1, type: 'Bus', route: 'Village -> City Center', time: '08:00 AM', status: 'On Time', fare: '₹25' },
+            { id: 2, type: 'Train', route: 'WeGram Station -> Central', time: '08:45 AM', status: 'Delayed', fare: '₹15' },
+            { id: 3, type: 'Auto', route: 'Village Square -> Market', time: '09:00 AM', status: 'On Time', fare: '₹10' },
+            { id: 4, type: 'Bus', route: 'Village -> District HQ', time: '10:30 AM', status: 'On Time', fare: '₹40' },
+            { id: 5, type: 'Van', route: 'School Route 1', time: '02:00 PM', status: 'On Time', fare: 'Free' }
+        ]
+    };
+
+    // --- Translation Function ---
+    function changeLanguage() {
+        currentLang = document.getElementById('langSelect').value;
+        const elements = document.querySelectorAll('[data-i18n]');
+        
+        elements.forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if(translations[currentLang] && translations[currentLang][key]) {
+                if(el.innerHTML.includes('<')) {
+                     el.innerHTML = translations[currentLang][key];
+                } else {
+                     el.innerText = translations[currentLang][key];
+                }
+            }
+        });
+
+        // Update Placeholders separately
+        const phElements = document.querySelectorAll('[data-i18n-ph]');
+        phElements.forEach(el => {
+            const key = el.getAttribute('data-i18n-ph');
+            if(translations[currentLang] && translations[currentLang][key]) {
+                el.placeholder = translations[currentLang][key];
+            }
+        });
+
+        // Refresh Dynamic Modules
+        updateSim(); 
+        updateBotMessage(currentLang);
+        renderIssues();
+        renderTransport(); 
+    }
+
+    function getTxt(key) {
+        return translations[currentLang][key] || translations['en'][key] || key;
+    }
+
+    // --- Navigation Logic ---
+    function showModule(id) {
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        event.target.classList.add('active');
+
+        document.querySelectorAll('.module-section').forEach(el => el.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+
+        const titles = {
+            'problem-action': 'title_problem',
+            'scheme-check': 'title_scheme',
+            'resource-sim': 'title_sim',
+            'village-map': 'title_map', 
+            'transport-schedule': 'title_transport',
+            'ai-assistant': 'title_ai',
+            'invisible-work': 'title_work',
+            'admin-panel': 'title_admin'
+        };
+        document.getElementById('module-title').innerText = getTxt(titles[id]);
+
+        // Trigger renders
+        if (id === 'admin-panel') renderAdmin();
+        if (id === 'transport-schedule') renderTransport();
+    }
+
+    // --- Toast System ---
+    function showToast(msgKey) {
+        const x = document.getElementById("toast");
+        x.innerText = getTxt(msgKey);
+        x.className = "show";
+        setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+    }
+
+    // --- Module 1: Problem Action ---
+    function submitIssue() {
+        const typeSelect = document.getElementById('issueType');
+        const type = typeSelect.value;
+        const typeText = typeSelect.options[typeSelect.selectedIndex].text;
+        const desc = document.getElementById('issueDesc').value;
+        
+        if(!desc) {
+            showToast("toast_desc");
+            return;
+        }
+
+        const score = (Math.random() * 5 + 4).toFixed(1); 
+        state.issues.push({ type: typeText, desc, score, count: 1 });
+
+        renderIssues();
+        document.getElementById('issueDesc').value = '';
+        showToast("toast_logged");
+    }
+
+    function renderIssues() {
+        const container = document.getElementById('issueList');
+        container.innerHTML = '';
+        state.issues.forEach(issue => {
+            const isHigh = issue.score > 7.5 ? 'priority-high' : '';
+            const html = `
+                <div class="problem-item">
+                    <div>
+                        <strong>${issue.type}: ${issue.desc}</strong>
+                        <div style="font-size: 0.85rem; color: #666;">${getTxt('lbl_similar')} ${issue.count} ${getTxt('lbl_reports')}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span class="tag ${isHigh}">${getTxt('lbl_impact')}: ${issue.score}</span>
+                    </div>
+                </div>
+            `;
+            container.innerHTML += html;
+        });
+    }
+
+    // --- Module 2: Scheme Eligibility ---
+    function checkSchemes() {
+        const income = parseInt(document.getElementById('income').value);
+        const land = parseFloat(document.getElementById('land').value);
+        const resultDiv = document.getElementById('schemeResult');
+        
+        if(isNaN(income) || isNaN(land)) {
+            showToast("toast_valid");
+            return;
+        }
+
+        let schemes = [];
+        let leaks = [];
+
+        if (income < 80000) schemes.push("PM Kisan Samman Nidhi");
+        if (land < 2 && income < 100000) schemes.push("State Landless Labour Scheme");
+        if (income < 50000) schemes.push("Rice Subsidy (Annapurna)");
+        
+        if (Math.random() > 0.7) {
+            leaks.push("Suspicious: Similar ID found in neighboring village.");
+        }
+
+        let html = `<h3>${getTxt('res_title')}</h3>`;
+        if (schemes.length > 0) {
+            html += `<div style="margin-bottom:1rem;"><strong>${getTxt('res_eligible')}</strong><ul>`;
+            schemes.forEach(s => html += `<li style="color:var(--success)">${s}</li>`);
+            html += `</ul></div>`;
+        } else {
+            html += `<p style="color:var(--text-light)">${getTxt('res_none')}</p>`;
+        }
+
+        if (leaks.length > 0) {
+            html += `<div style="background:#fff5f5; padding:10px; border:1px solid #feb2b2; color: #c53030;">
+                        <strong>${getTxt('res_leak_title')}</strong><br>${getTxt('res_leak_suspicious')}
+                      </div>`;
+        } else {
+             html += `<div style="color:var(--success); font-size:0.9rem;">${getTxt('res_clean')}</div>`;
+        }
+
+        resultDiv.innerHTML = html;
+        resultDiv.style.display = 'block';
+    }
+
+    // --- Module 3: Resource Simulator ---
+    function updateSim() {
+        const rRoad = document.getElementById('rangeRoad');
+        const rHealth = document.getElementById('rangeHealth');
+        const rWater = document.getElementById('rangeWater');
+
+        state.budget.road = parseInt(rRoad.value);
+        state.budget.health = parseInt(rHealth.value);
+        state.budget.water = parseInt(rWater.value);
+
+        document.getElementById('valRoad').innerText = state.budget.road;
+        document.getElementById('valHealth').innerText = state.budget.health;
+        document.getElementById('valWater').innerText = state.budget.water;
+
+        document.getElementById('fillRoad').style.width = state.budget.road + '%';
+        document.getElementById('fillHealth').style.width = state.budget.health + '%';
+        document.getElementById('fillWater').style.width = state.budget.water + '%';
+
+        let msgKey = "out_balanced";
+        if(state.budget.road > 60) msgKey = "out_road_high";
+        else if(state.budget.health > 60) msgKey = "out_health_high";
+        else if(state.budget.water > 60) msgKey = "out_water_high";
+        
+        document.getElementById('simOutcome').innerText = getTxt(msgKey);
+    }
+
+    // --- Module 4: Google Maps Integration ---
+    function openGoogleDirections() {
+        const destination = document.getElementById('navDestination').value;
+        const origin = "WeGram"; // Fixed origin
+        
+        if (!destination.trim()) {
+            alert("Please enter a destination.");
+            return;
+        }
+
+        const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`;
+        window.open(url, '_blank');
+    }
+
+    function viewOnMap() {
+        // Open a general map query for WeGram
+        const url = "https://www.google.com/maps/search/?api=1&query=WeGram";
+        window.open(url, '_blank');
+    }
+
+    // --- Module 5: Transport Schedule ---
+    function getIconForType(type) {
+        if(type.includes('Bus')) return '🚌';
+        if(type.includes('Train')) return '🚆';
+        return '🛺';
+    }
+
+    function filterTransport() {
+        renderTransport();
+    }
+
+    function renderTransport() {
+        const container = document.getElementById('transportList');
+        const search = document.getElementById('transportSearch').value.toLowerCase();
+        const typeFilter = document.getElementById('transportFilter').value;
+
+        container.innerHTML = '';
+
+        const filtered = state.transport.filter(item => {
+            const matchesSearch = item.route.toLowerCase().includes(search);
+            const matchesType = typeFilter === 'All' || item.type.includes(typeFilter);
+            return matchesSearch && matchesType;
+        });
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-light);">No routes found.</td></tr>`;
+            return;
+        }
+
+        filtered.forEach(item => {
+            const statusClass = item.status === 'On Time' ? 'status-ontime' : 'status-delayed';
+            const translatedStatus = item.status === 'On Time' ? getTxt('status_ontime') : getTxt('status_delayed');
+            
+            const row = `
+                <tr>
+                    <td>
+                        <div class="icon-cell">
+                            <span>${getIconForType(item.type)}</span>
+                            <strong>${item.type}</strong>
+                        </div>
+                    </td>
+                    <td>${item.route}</td>
+                    <td>${item.time}</td>
+                    <td><span class="status-badge ${statusClass}">${translatedStatus}</span></td>
+                    <td>${item.fare}</td>
+                </tr>
+            `;
+            container.innerHTML += row;
+        });
+    }
+
+    // --- Module 6: AI Assistant ---
+    function handleChatKey(e) {
+        if(e.key === 'Enter') sendChat();
+    }
+
+    function toggleVoice() {
+        showToast("toast_listening");
+        setTimeout(() => {
+            document.getElementById('chatInput').value = "What schemes are for farmers?";
+            sendChat();
+        }, 1500);
+    }
+    
+    function updateBotMessage(lang) {
+        const msg = getTxt('msg_bot_welcome');
+        const chatDiv = document.getElementById('chatMessages');
+        if(chatDiv.children.length === 1) {
+            chatDiv.children[0].innerText = msg;
+        }
+    }
+
+    function sendChat() {
+        const input = document.getElementById('chatInput');
+        const msg = input.value.trim();
+        if(!msg) return;
+
+        const chatDiv = document.getElementById('chatMessages');
+        
+        chatDiv.innerHTML += `<div class="message msg-user">${msg}</div>`;
+        input.value = '';
+        chatDiv.scrollTop = chatDiv.scrollHeight;
+
+        setTimeout(() => {
+            let replyKey = "bot_fallback";
+            const lower = msg.toLowerCase();
+
+            if(lower.includes('rice') || lower.includes('food')) replyKey = "bot_rice";
+            else if(lower.includes('road') || lower.includes('pot')) replyKey = "bot_road";
+            else if(lower.includes('health')) replyKey = "bot_health";
+            else if(lower.includes('hindi') || lower.includes('translate')) replyKey = "bot_trans_hi";
+            else if(lower.includes('kannada') || lower.includes('kn')) replyKey = "bot_trans_kn";
+            else replyKey = "bot_fallback";
+
+            chatDiv.innerHTML += `<div class="message msg-bot">${getTxt(replyKey)}</div>`;
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+        }, 800);
+    }
+
+    // --- Module 7: Invisible Work ---
+    function logWork() {
+        const typeSelect = document.getElementById('workType');
+        const type = typeSelect.value;
+        const typeText = typeSelect.options[typeSelect.selectedIndex].text;
+        const hours = parseFloat(document.getElementById('workHours').value);
+
+        if(!hours || hours <= 0) {
+            showToast("toast_hours");
+            return;
+        }
+
+        state.workHours += hours;
+        const multiplier = type === 'Caregiving' ? 1.5 : 1.2;
+        state.impactScore += (hours * multiplier * 10);
+
+        document.getElementById('workProfile').style.display = 'block';
+        document.getElementById('impactScore').innerText = Math.floor(state.impactScore);
+        document.getElementById('certName').innerText = typeText + " contribution";
+        document.getElementById('certHours').innerText = state.workHours;
+        document.getElementById('certId').innerText = "VID-" + Math.floor(Math.random()*10000);
+        
+        showToast("toast_work");
+    }
+
+    function downloadCert() {
+        showToast("toast_download");
+    }
+
+    // --- Module 8: Admin ---
+    function renderAdmin() {
+        document.getElementById('adminIssues').innerText = state.issues.length;
+        document.getElementById('adminWork').innerText = state.workHours;
+    }
+</script>
+</body>
+</html>
